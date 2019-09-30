@@ -1,0 +1,30 @@
+sudo: required
+
+services:
+  - docker
+
+env:
+  DOCKER_COMPOSE_VERSION: 1.21.1
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+before_script:
+  - export REACT_APP_USERS_SERVICE_URL=http://sdl31561.labs.teradata.com
+  - chmod +x services/users/entrypoint.sh
+  - docker-compose -f docker-compose-dev.yml up --build -d
+  - sleep 15s
+  - docker-compose -f docker-compose-dev.yml ps
+
+script:
+  # - docker-compose -f docker-compose-dev.yml exec users flake8 project
+  - docker-compose -f docker-compose-dev.yml exec users python manage.py test
+
+after_script:
+  - docker-compose -f docker-compose-dev.yml down
+  - sleep 15
+  - docker-compose -f docker-compose-dev.yml ps
+

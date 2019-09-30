@@ -1,0 +1,92 @@
+#after removing build deps from user service container i ran below command and got error.
+
+
+root@sdl31561:/home/ubuntu/testdriven-app# docker-compose -f docker-compose-dev.yml up -d --build
+Building users-db
+Step 1/2 : FROM postgres:10.4-alpine
+10.4-alpine: Pulling from library/postgres
+8e3ba11ec2a2: Pull complete
+fbb9adb8cff8: Pull complete
+aa8817b9e00d: Pull complete
+e162a11eb12c: Pull complete
+788b2698f298: Pull complete
+109af6d3e982: Pull complete
+798f27e0089d: Pull complete
+b5a994ed229e: Pull complete
+4b6dfba335bd: Pull complete
+Digest: sha256:b00851e5a07b910a18f9211cec807a1256cec38bbf7aa06859aba79acf79b3a8
+Status: Downloaded newer image for postgres:10.4-alpine
+ ---> 962ed899c609
+Step 2/2 : ADD create.sql /docker-entrypoint-initdb.d
+ ---> 5cae757420c2
+
+Successfully built 5cae757420c2
+Successfully tagged testdriven-app_users-db:latest
+Building users
+Step 1/9 : FROM python:3.6.5-alpine
+ ---> 5be6d36f77ee
+Step 2/9 : RUN mkdir -p /usr/src/app
+ ---> Using cache
+ ---> 0362ad2aea14
+Step 3/9 : WORKDIR /usr/src/app
+ ---> Using cache
+ ---> aebd5cfc4409
+Step 4/9 : copy ./requirements.txt /usr/src/app/requirements.txt
+ ---> eba063a5a3cf
+Step 5/9 : RUN pip install -r requirements.txt
+ ---> Running in 0e606a4565e1
+Collecting Flask==1.0.2 (from -r requirements.txt (line 1))
+  Downloading https://files.pythonhosted.org/packages/7f/e7/08578774ed4536d3242b14dacb4696386634607af824ea997202cd0edb4b/Flask-1.0.2-py2.py3-none-any.whl (91kB)
+Collecting Flask-SQLAlchemy==2.3.2 (from -r requirements.txt (line 2))
+  Downloading https://files.pythonhosted.org/packages/a1/44/294fb7f6bf49cc7224417cd0637018db9fee0729b4fe166e43e2bbb1f1c8/Flask_SQLAlchemy-2.3.2-py2.py3-none-any.whl
+Collecting psycopg2==2.7.4 (from -r requirements.txt (line 3))
+  Downloading https://files.pythonhosted.org/packages/74/83/51580322ed0e82cba7ad8e0af590b8fb2cf11bd5aaa1ed872661bd36f462/psycopg2-2.7.4.tar.gz (425kB)
+    Complete output from command python setup.py egg_info:
+    running egg_info
+    creating pip-egg-info/psycopg2.egg-info
+    writing pip-egg-info/psycopg2.egg-info/PKG-INFO
+    writing dependency_links to pip-egg-info/psycopg2.egg-info/dependency_links.txt
+    writing top-level names to pip-egg-info/psycopg2.egg-info/top_level.txt
+    writing manifest file 'pip-egg-info/psycopg2.egg-info/SOURCES.txt'
+
+    Error: pg_config executable not found.
+
+    pg_config is required to build psycopg2 from source.  Please add the directory
+    containing pg_config to the $PATH or specify the full executable path with the
+    option:
+
+        python setup.py build_ext --pg-config /path/to/pg_config build ...
+
+    or with the pg_config option in 'setup.cfg'.
+
+    If you prefer to avoid building psycopg2 from source, please install the PyPI
+    'psycopg2-binary' package instead.
+
+    For further information please check the 'doc/src/install.rst' file (also at
+    <http://initd.org/psycopg/docs/install.html>).
+
+
+    ----------------------------------------
+Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-install-uoatxzpx/psycopg2/
+You are using pip version 10.0.1, however version 18.1 is available.
+You should consider upgrading via the 'pip install --upgrade pip' command.
+ERROR: Service 'users' failed to build: The command '/bin/sh -c pip install -r requirements.txt' returned a non-zero code: 1
+root@sdl31561:/home/ubuntu/testdriven-app#
+
+
+#above command failed to build user image. root error is "Error: pg_config executable not found."
+
+#How to fix it?
+pg_config is in postgresql-devel package. so install it using below command.
+
+# install dependencies
+RUN apk update && \
+apk add --virtual build-deps gcc python-dev musl-dev && \
+apk add postgresql-dev && \
+apk add netcat-openbsd
+
+#here apk is package manager to install packages.
+apk add --virtual build-deps ==> creating virtual package contains few packages.follow this approch to remove the packages also easily.
+
+
+
